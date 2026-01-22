@@ -1,18 +1,22 @@
-import { Canvas, useFrame } from '@react-three/fiber'
-import { Environment, OrbitControls, ContactShadows } from '@react-three/drei'
-import { useState, useEffect, useRef, useLayoutEffect } from 'react'
-import * as THREE from 'three'
-import { Card3D } from './Card'
-import { Envelope } from './EnvelopeFbx'
-import Link from 'next/link'
+// components/Experience.tsx
+
+"use client";
+
+import { Canvas, useFrame } from '@react-three/fiber';
+import { Environment, OrbitControls, ContactShadows } from '@react-three/drei';
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import * as THREE from 'three';
+import { Card3D } from './Card';
+import { Envelope } from './Envelope';
+import Link from 'next/link';
 
 interface ExperienceProps {
     faces: {
         front: string;
         inside_left: string;
         inside_right: string;
-    }
-    onSkip?: () => void
+    };
+    onSkip?: () => void;
 }
 
 type AnimationStep =
@@ -22,33 +26,39 @@ type AnimationStep =
     | 'rotating'
     | 'pause'
     | 'opening_card'
-    | 'reading'
+    | 'reading';
 
-function AnimationController({ step, children }: { step: AnimationStep, children: React.ReactNode }) {
-    const groupRef = useRef<THREE.Group>(null)
+function AnimationController({
+    step,
+    children,
+}: {
+    step: AnimationStep;
+    children: React.ReactNode;
+}) {
+    const groupRef = useRef<THREE.Group>(null);
 
     const getTargets = (s: AnimationStep) => {
-        const landscapeRot = -Math.PI / 2
-        const portraitRot = 0
+        const landscapeRot = -Math.PI / 2;
+        const portraitRot = 0;
 
         switch (s) {
             case 'idle':
             case 'opening_envelope':
-                return { pos: [0, 0.005, 0], rot: [0, 0, landscapeRot] }
+                return { pos: [0, 0.005, 0], rot: [0, 0, landscapeRot] };
             case 'sliding_out':
-                return { pos: [0, 2.0, 0.0], rot: [0, 0, landscapeRot] }
+                return { pos: [0, 2.0, 0.0], rot: [0, 0, landscapeRot] };
             case 'rotating':
-                return { pos: [0, 2.0, 0.5], rot: [0, 0, portraitRot] }
+                return { pos: [0, 2.0, 0.5], rot: [0, 0, portraitRot] };
             case 'pause':
-                return { pos: [0, 0, 1.5], rot: [0, 0, portraitRot] }
+                return { pos: [0, 0, 1.5], rot: [0, 0, portraitRot] };
             case 'opening_card':
-                return { pos: [0, 0, 2.0], rot: [0, 0, portraitRot] }
+                return { pos: [0, 0, 2.0], rot: [0, 0, portraitRot] };
             case 'reading':
-                return { pos: [0, 0.5, 3.2], rot: [0, 0, portraitRot] }
+                return { pos: [0, 0.5, 3.2], rot: [0, 0, portraitRot] };
             default:
-                return { pos: [0, 0, 0], rot: [0, 0, 0] }
+                return { pos: [0, 0, 0], rot: [0, 0, 0] };
         }
-    }
+    };
 
     useLayoutEffect(() => {
         if (groupRef.current && step === 'idle') {
@@ -59,63 +69,67 @@ function AnimationController({ step, children }: { step: AnimationStep, children
     }, [step]);
 
     useFrame((state, delta) => {
-        if (!groupRef.current) return
-        const { pos, rot } = getTargets(step)
+        if (!groupRef.current) return;
+        const { pos, rot } = getTargets(step);
 
-        groupRef.current.position.x = THREE.MathUtils.lerp(groupRef.current.position.x, pos[0], 3 * delta)
-        groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, pos[1], 3 * delta)
-        groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, pos[2], 3 * delta)
+        groupRef.current.position.lerp(new THREE.Vector3(...pos), 3 * delta);
+        groupRef.current.rotation.x = THREE.MathUtils.lerp(
+            groupRef.current.rotation.x,
+            rot[0],
+            3 * delta
+        );
+        groupRef.current.rotation.y = THREE.MathUtils.lerp(
+            groupRef.current.rotation.y,
+            rot[1],
+            3 * delta
+        );
+        groupRef.current.rotation.z = THREE.MathUtils.lerp(
+            groupRef.current.rotation.z,
+            rot[2],
+            3 * delta
+        );
+    });
 
-        groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, rot[0], 3 * delta)
-        groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, rot[1], 3 * delta)
-        groupRef.current.rotation.z = THREE.MathUtils.lerp(groupRef.current.rotation.z, rot[2], 3 * delta)
-    })
+    const isVisible = step !== 'idle';
 
-    const isVisible = step !== 'idle'
-
-    return (
-        <group ref={groupRef} visible={isVisible}>
-            {children}
-        </group>
-    )
+    return <group ref={groupRef} visible={isVisible}>{children}</group>;
 }
 
 function CameraRig() {
     useFrame((state) => {
-        state.camera.lookAt(0, 0, 0)
-    })
-    return null
+        state.camera.lookAt(0, 0, 0);
+    });
+    return null;
 }
 
 export function Experience({ faces }: ExperienceProps) {
-    const [step, setStep] = useState<AnimationStep>('idle')
+    const [step, setStep] = useState<AnimationStep>('idle');
 
     useEffect(() => {
         if (step === 'opening_envelope') {
-            const t = setTimeout(() => setStep('sliding_out'), 900)
-            return () => clearTimeout(t)
+            const t = setTimeout(() => setStep('sliding_out'), 1200); // Adjust for flap animation
+            return () => clearTimeout(t);
         }
         if (step === 'sliding_out') {
-            const t = setTimeout(() => setStep('rotating'), 1200)
-            return () => clearTimeout(t)
+            const t = setTimeout(() => setStep('rotating'), 1200);
+            return () => clearTimeout(t);
         }
         if (step === 'rotating') {
-            const t = setTimeout(() => setStep('pause'), 800)
-            return () => clearTimeout(t)
+            const t = setTimeout(() => setStep('pause'), 800);
+            return () => clearTimeout(t);
         }
         if (step === 'pause') {
-            const t = setTimeout(() => setStep('opening_card'), 1000)
-            return () => clearTimeout(t)
+            const t = setTimeout(() => setStep('opening_card'), 1000);
+            return () => clearTimeout(t);
         }
         if (step === 'opening_card') {
-            const t = setTimeout(() => setStep('reading'), 800)
-            return () => clearTimeout(t)
+            const t = setTimeout(() => setStep('reading'), 800);
+            return () => clearTimeout(t);
         }
-    }, [step])
+    }, [step]);
 
     return (
         <div className="w-full h-full absolute top-0 left-0 bg-[#0a0a0a]" style={{ touchAction: 'none' }}>
-
             {step !== 'reading' && (
                 <button
                     onClick={() => setStep('reading')}
@@ -125,34 +139,24 @@ export function Experience({ faces }: ExperienceProps) {
                 </button>
             )}
 
-            <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.8)_100%)] z-10" />
-
-            {/* UPDATED CAMERA: 45 Degree Angle
-               X: 10 (Right)
-               Y: 5 (Up)
-               Z: -10 (Back)
-               This creates a diagonal view to fix the "leaning" asset.
-            */}
             <Canvas shadows camera={{ position: [5, 5, 5], fov: 45 }} style={{ touchAction: 'none' }}>
                 <color attach="background" args={['#111']} />
 
                 <ambientLight intensity={0.4} />
                 <spotLight
-                    // Move light to match the new camera angle so shadows fall nicely
                     position={[10, 10, -5]}
                     angle={0.5}
                     penumbra={1}
                     intensity={2}
                     castShadow
-                    shadow-mapSize={[1024, 1024]}
                 />
                 <Environment preset="city" blur={1} />
 
                 <group position={[0, 0, 0]}>
                     <Envelope
-                        isOpen={step !== 'idle'}
+                        isOpen={step === 'opening_envelope'}
                         onClick={() => {
-                            if (step === 'idle') setStep('opening_envelope')
+                            if (step === 'idle') setStep('opening_envelope');
                         }}
                     />
 
@@ -167,21 +171,16 @@ export function Experience({ faces }: ExperienceProps) {
                 </group>
 
                 <ContactShadows position={[0, -2, 0]} opacity={0.6} scale={20} blur={2.5} far={4} color="#000" />
-
                 <CameraRig />
-                <OrbitControls
-                    makeDefault
-                    enablePan={false}
-                    enableZoom={false}
-                    target={[0, 0, 0]}
-                    minPolarAngle={Math.PI / 6}
-                    maxPolarAngle={Math.PI / .5}
-                />
+                <OrbitControls enableZoom={false} enablePan={false} />
             </Canvas>
 
             {step === 'reading' && (
                 <div className="absolute bottom-12 left-0 w-full text-center z-50 animate-in fade-in duration-1000">
-                    <Link href="/" className="inline-block bg-white text-black font-serif px-8 py-3 rounded-full text-lg shadow-lg hover:scale-105 transition-transform">
+                    <Link
+                        href="/"
+                        className="inline-block bg-white text-black font-serif px-8 py-3 rounded-full text-lg shadow-lg hover:scale-105 transition-transform"
+                    >
                         Send your own card
                     </Link>
                 </div>
@@ -193,5 +192,5 @@ export function Experience({ faces }: ExperienceProps) {
                 </div>
             )}
         </div>
-    )
+    );
 }

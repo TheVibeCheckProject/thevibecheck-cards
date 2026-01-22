@@ -25,6 +25,12 @@ export default function PropertiesPanel() {
         updateLayer(selectedLayer.id, { [key]: value } as any)
     }
 
+    // Helper to safely parse numbers
+    const safeParseInt = (val: string, fallback: number = 0) => {
+        const parsed = parseInt(val, 10)
+        return isNaN(parsed) ? fallback : parsed
+    }
+
     return (
         <div className="flex flex-col border-l border-gray-200 dark:border-gray-800 w-72 bg-white dark:bg-zinc-950 p-4 overflow-y-auto">
             <h3 className="font-bold text-sm uppercase text-gray-500 mb-4">Properties</h3>
@@ -62,8 +68,8 @@ export default function PropertiesPanel() {
                                 <label className="text-xs font-medium text-gray-500">Size (px)</label>
                                 <input
                                     type="number"
-                                    value={selectedLayer.fontSize}
-                                    onChange={(e) => handleChange('fontSize', parseInt(e.target.value) || 12)}
+                                    value={selectedLayer.fontSize || ''}
+                                    onChange={(e) => handleChange('fontSize', safeParseInt(e.target.value, 12))}
                                     className="w-full rounded-md border border-gray-200 p-2 text-sm dark:border-zinc-800 dark:bg-zinc-900"
                                 />
                             </div>
@@ -124,8 +130,8 @@ export default function PropertiesPanel() {
                             <label className="text-[10px] text-gray-400">X</label>
                             <input
                                 type="number"
-                                value={Math.round(selectedLayer.x)}
-                                onChange={(e) => handleChange('x', parseInt(e.target.value))}
+                                value={Math.round(selectedLayer.x) || 0}
+                                onChange={(e) => handleChange('x', safeParseInt(e.target.value, 0))}
                                 className="w-full px-2 py-1 text-xs border rounded bg-gray-50 dark:bg-zinc-900 dark:border-zinc-800"
                             />
                         </div>
@@ -133,8 +139,8 @@ export default function PropertiesPanel() {
                             <label className="text-[10px] text-gray-400">Y</label>
                             <input
                                 type="number"
-                                value={Math.round(selectedLayer.y)}
-                                onChange={(e) => handleChange('y', parseInt(e.target.value))}
+                                value={Math.round(selectedLayer.y) || 0}
+                                onChange={(e) => handleChange('y', safeParseInt(e.target.value, 0))}
                                 className="w-full px-2 py-1 text-xs border rounded bg-gray-50 dark:bg-zinc-900 dark:border-zinc-800"
                             />
                         </div>
@@ -142,8 +148,8 @@ export default function PropertiesPanel() {
                             <label className="text-[10px] text-gray-400">Rotation</label>
                             <input
                                 type="number"
-                                value={Math.round(selectedLayer.rotation)}
-                                onChange={(e) => handleChange('rotation', parseInt(e.target.value))}
+                                value={Math.round(selectedLayer.rotation) || 0}
+                                onChange={(e) => handleChange('rotation', safeParseInt(e.target.value, 0))}
                                 className="w-full px-2 py-1 text-xs border rounded bg-gray-50 dark:bg-zinc-900 dark:border-zinc-800"
                             />
                         </div>
